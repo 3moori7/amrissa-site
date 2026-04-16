@@ -1,11 +1,15 @@
 
-import { Edges, MeshPortalMaterial, Text, TextProps, useScroll } from '@react-three/drei';
-import { useFrame, useThree } from '@react-three/fiber';
+import { Edges, MeshPortalMaterial, Text, TextProps } from '@react-three/drei';
+import { useThree } from '@react-three/fiber';
 import { usePortalStore } from '@stores';
 import gsap from "gsap";
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { useIsMobileViewport } from '@/app/hooks/useIsMobileViewport';
+import MobileTileCover from './MobileTileCover';
+
+const MOBILE_TILE_W = 3.35;
+const MOBILE_TILE_H = 2.05;
 
 interface GridTileProps {
   id: string;
@@ -14,6 +18,8 @@ interface GridTileProps {
   children: React.ReactNode;
   color: string;
   position: THREE.Vector3;
+  /** Full-bleed image on the tile face (mobile only). */
+  mobileCoverImage?: string;
 }
 
 // TODO: Rename this
@@ -23,39 +29,11 @@ const GridTile = (props: GridTileProps) => {
   const gridRef = useRef<THREE.Group>(null);
   const hoverBoxRef = useRef<THREE.Mesh>(null);
   const portalRef = useRef(null);
-  const { title, textAlign, children, color, position, id } = props;
+  const { title, textAlign, children, color, position, id, mobileCoverImage } = props;
   const { camera } = useThree();
   const setActivePortal = usePortalStore((state) => state.setActivePortal);
   const isActive = usePortalStore((state) => state.activePortalId === id);
   const activePortalId = usePortalStore((state) => state.activePortalId);
-  const data = useScroll();
-
-  useEffect(() => {
-    // Hanlde the hover box and title animation for mobile.
-    if (isMobile && titleRef.current) {
-      const isWork = id === 'work';
-      gsap.to(titleRef.current, {
-        fontSize: 0.11,
-        maxWidth: 2.2,
-        color: isWork ? '#FFF' : '#888',
-        letterSpacing: 0.18,
-      });
-      gsap.to(titleRef.current.position, {
-        x: 0,
-        y: -0.95,
-        duration: 0.5,
-      });
-    }
-  }, []);
-
-  useFrame(() => {
-    const d = data.range(0.95, 0.05);
-    if (isMobile && titleRef.current) {
-      /* eslint-disable  @typescript-eslint/no-explicit-any */
-      (titleRef.current as any).fillOpacity = d;
-    }
-  });
-
   const handleEscape = (e: KeyboardEvent) => {
     if (e.key === 'Escape') {
       exitPortal(true);
@@ -163,7 +141,7 @@ const GridTile = (props: GridTileProps) => {
   };
 
   const getGeometry = () => {
-    return <planeGeometry args={isMobile ? [3.2, 1.9, 1] : [4, 4, 1]} />
+    return <planeGeometry args={isMobile ? [MOBILE_TILE_W, MOBILE_TILE_H, 1] : [4, 4, 1]} />
   };
 
   return (
@@ -175,17 +153,40 @@ const GridTile = (props: GridTileProps) => {
       { getGeometry() }
       <group>
         <mesh position={[0, 0, -0.01]} ref={hoverBoxRef} scale={[0, 0, 0]}>
-          <boxGeometry args={[isMobile ? 3.2 : 4, isMobile ? 1.9 : 4, 0.5]}/>
+          <boxGeometry args={[isMobile ? MOBILE_TILE_W : 4, isMobile ? MOBILE_TILE_H : 4, 0.5]}/>
           <meshPhysicalMaterial
             color="#444"
             transparent={true}
             opacity={0.3}
           />
-          <Edges color="white" lineWidth={3}/>
+          {!isMobile && <Edges color="white" lineWidth={3}/>}
         </mesh>
-        <Text position={[0, -1.8, 0.4]} {...fontProps} ref={titleRef}>
-          {title}
-        </Text>
+        {isMobile && !isActive && (
+          <>
+            {mobileCoverImage && (
+              <MobileTileCover url={mobileCoverImage} width={MOBILE_TILE_W} height={MOBILE_TILE_H} />
+            )}
+            <Text
+              position={[0, 0, 0.025]}
+              {...fontProps}
+              ref={titleRef}
+              anchorX="center"
+              anchorY="middle"
+              fontSize={0.26}
+              maxWidth={MOBILE_TILE_W - 0.35}
+              textAlign="center"
+              letterSpacing={0.04}
+              fillOpacity={1}
+            >
+              {title}
+            </Text>
+          </>
+        )}
+        {!isMobile && (
+          <Text position={[0, -1.8, 0.4]} {...fontProps} ref={titleRef}>
+            {title}
+          </Text>
+        )}
       </group>
       <MeshPortalMaterial ref={portalRef} blend={0} resolution={0} blur={0}>
         <color attach="background" args={[color]} />

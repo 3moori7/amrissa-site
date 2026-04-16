@@ -74,7 +74,7 @@ const FooterLinkItem = ({ link, isMobile }: { link: FooterLink, isMobile: boolea
   useCursor(hovered);
 
   if (isMobile) {
-    return <Svg onClick={onClick} scale={0.0015} position={[0.1, 0.25, 0]} src={link.icon} />;
+    return <Svg onClick={onClick} scale={0.0022} position={[0.12, 0.28, 0]} src={link.icon} />;
   }
 
   return (
@@ -96,10 +96,13 @@ const Footer = () => {
     }
   });
 
+  const links = isMobile ? FOOTER_LINKS.slice(0, 3) : FOOTER_LINKS;
+
   const getLinks = () => {
-    return FOOTER_LINKS.map((link, i) => {
+    return links.map((link, i) => {
+      const mobileX = (i - (links.length - 1) / 2) * 1.28;
       return (
-        <group key={i} position={[i * (isMobile ? 1.1 : 2), 0, 0]}>
+        <group key={link.name} position={[isMobile ? mobileX : i * 2, 0, 0]}>
           <FooterLinkItem link={link} isMobile={isMobile}/>
         </group>
       );
@@ -108,7 +111,7 @@ const Footer = () => {
 
   return (
     <group position={[0, -44, 18]} rotation={[-Math.PI / 2, 0, 0]} ref={groupRef}>
-      <group position={[isMobile ? -2.5 : -4, 0, 0]}>
+      <group position={[isMobile ? 0 : -4, 0, 0]}>
         { getLinks() }
       </group>
     </group>

@@ -43,7 +43,7 @@ const Experience = () => {
   const getTitle = () => {
     if (isMobile) {
       return (
-        <Text {...fontProps} fontSize={0.28} position={[0, 2, 1]}>
+        <Text {...fontProps} fontSize={0.42} position={[0, 2.15, 1]} anchorX="center" anchorY="middle" maxWidth={3.4}>
           EXPERIENCE
         </Text>
       );
@@ -65,23 +65,25 @@ const Experience = () => {
         <shadowMaterial opacity={0.1} />
       </mesh> */}
       <group rotation={[0, 0, Math.PI / 2]}>
-        <group ref={titleRef} position={[isMobile ? -1.3 : -3.6, 2, -2]}>
+        <group ref={titleRef} position={[isMobile ? 0 : -3.6, 2, -2]}>
           {getTitle()}
         </group>
 
-        <group position={[0, isMobile ? -0.2 : -1, 0]} ref={groupRef}>
-          <GridTile title='WORK AND EDUCATION'
+        <group position={[0, isMobile ? -0.15 : -1, 0]} ref={groupRef}>
+          <GridTile title='WORK & EDUCATION'
             id="work"
             color='#b9c6d6'
-            textAlign='left'
-            position={new THREE.Vector3(isMobile ? 0 : -2, isMobile ? 0.95 : 0, isMobile ? 0.2 : 0)}>
+            textAlign={isMobile ? 'center' : 'left'}
+            mobileCoverImage="/images/experience/work-hero.jpg"
+            position={new THREE.Vector3(isMobile ? 0 : -2, isMobile ? 1.08 : 0, isMobile ? 0.2 : 0)}>
             <Work/>
           </GridTile>
           <GridTile title='SIDE PROJECTS'
             id="projects"
             color='#bdd1e3'
-            textAlign='right'
-            position={new THREE.Vector3(isMobile ? 0 : 2, isMobile ? -1.05 : 0, 0)}>
+            textAlign={isMobile ? 'center' : 'right'}
+            mobileCoverImage="/images/experience/projects-hero.jpg"
+            position={new THREE.Vector3(isMobile ? 0 : 2, isMobile ? -1.12 : 0, 0)}>
             <Projects/>
           </GridTile>
         </group>
