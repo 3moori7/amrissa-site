@@ -1,6 +1,6 @@
 import { ScrollControls } from "@react-three/drei";
 import { usePortalStore, useScrollStore } from "@stores";
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect } from "react";
 import * as THREE from "three";
 import { Memory } from "../../models/Memory";
 import Timeline from "./Timeline";
@@ -13,9 +13,16 @@ const Work = () => {
     const target = event.target as HTMLElement;
     const scrollTop = target.scrollTop;
     const scrollHeight = target.scrollHeight - target.clientHeight;
-    const progress = Math.min(Math.max(scrollTop / scrollHeight, 0), 1);
-    setScrollProgress(progress);
+    const denom = Math.max(scrollHeight, 1);
+    const progress = Math.min(Math.max(scrollTop / denom, 0), 1);
+    setScrollProgress(Number.isFinite(progress) ? progress : 0);
   }
+
+  useLayoutEffect(() => {
+    if (isActive) {
+      setScrollProgress(0);
+    }
+  }, [isActive, setScrollProgress]);
 
   // Hack: If the portal is active, add the scroll event listener to the scroll
   // wrapper div. If the portal is not active, remove the scroll event listener.
@@ -25,10 +32,13 @@ const Work = () => {
     if (isActive) {
       const scrollWrapper = document.querySelector('div[style*="z-index: -1"]') as HTMLElement;
       const originalScrollWrapper = document.querySelector('div[style*="z-index: 1"]') as HTMLElement;
+      if (scrollWrapper) {
+        scrollWrapper.scrollTop = 0;
+      }
       setScrollProgress(0);
-      scrollWrapper.addEventListener('scroll', handleScroll)
-      scrollWrapper.style.zIndex = '1';
-      originalScrollWrapper.style.zIndex = '-1';
+      scrollWrapper?.addEventListener('scroll', handleScroll);
+      if (scrollWrapper) scrollWrapper.style.zIndex = '1';
+      if (originalScrollWrapper) originalScrollWrapper.style.zIndex = '-1';
     } else {
       const scrollWrapper = document.querySelector('div[style*="z-index: 1"]') as HTMLElement;
       const originalScrollWrapper = document.querySelector('div[style*="z-index: -1"]') as HTMLElement;

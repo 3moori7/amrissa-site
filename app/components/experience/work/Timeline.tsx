@@ -23,46 +23,72 @@ const TimelinePoint = ({ point, diff, isMobile }: { point: WorkTimelinePoint, di
 
   const textAlign = point.position === 'left' ? 'right' : 'left';
 
+  const fillOpacity = Math.min(1, Math.max(0, 1 - diff));
+
   const textProps: Partial<TextProps> = useMemo(() => ({
     font: "./Vercetti-Regular.woff",
     color: "white",
-    anchorX: textAlign,
-    fillOpacity: 2 - 2 * diff,
-  }), [textAlign, diff]);
+    anchorX: isMobile ? 'center' : textAlign,
+    fillOpacity,
+  }), [textAlign, diff, isMobile]);
 
   const titleProps = useMemo(() => ({
     ...textProps,
     font: "./soria-font.ttf",
-    fontSize: isMobile ? 0.34 : 0.42,
-    maxWidth: isMobile ? 2.1 : 2.4,
-    lineHeight: 1,
-  }), [textProps]);
+    fontSize: isMobile ? 0.22 : 0.42,
+    maxWidth: isMobile ? 2.75 : 2.4,
+    lineHeight: isMobile ? 1.05 : 1,
+    anchorX: (isMobile ? 'center' : textAlign) as TextProps['anchorX'],
+  }), [textProps, isMobile, textAlign]);
+
+  const pointScale = isMobile ? 0.36 : 0.5;
 
   return (
-    <group position={point.point} scale={isMobile ? 0.3 : 0.5}>
+    <group position={point.point} scale={pointScale}>
       <Box args={[0.2, 0.2, 0.2]} position={[0, 0, -0.1]} scale={[1 - diff, 1 - diff, 1 - diff]}>
         <meshBasicMaterial color="white" wireframe />
         <Edges color="white" lineWidth={1.5} />
       </Box>
       <group>
-        <group position={getPoint}>
-          <Text {...textProps} fontSize={isMobile ? 0.2 : 0.24} position={[-diff / 2, 0.2, 0]}>
-            {point.year}
-          </Text>
-          <group position={[0, -0.32, 0]}>
-            <Text {...titleProps} position={[0, -diff / 2, 0]}>
+        {isMobile ? (
+          <group position={[0, 0, 0]}>
+            <Text {...textProps} fontSize={0.17} position={[0, 0.42, 0]} anchorX="center" anchorY="middle">
+              {point.year}
+            </Text>
+            <Text {...titleProps} position={[0, 0.06, 0]} anchorX="center" anchorY="middle">
               {point.title}
             </Text>
             <Text
               {...textProps}
-              fontSize={isMobile ? 0.14 : 0.16}
-              maxWidth={isMobile ? 2.1 : 2.4}
-              lineHeight={1}
-              position={[0, isMobile ? -0.72 - diff : -0.86 - diff, 0]}>
+              fontSize={0.13}
+              maxWidth={2.75}
+              lineHeight={1.1}
+              position={[0, -0.52, 0]}
+              anchorX="center"
+              anchorY="middle">
               {point.subtitle}
             </Text>
           </group>
-        </group>
+        ) : (
+          <group position={getPoint}>
+            <Text {...textProps} fontSize={0.24} position={[-diff / 2, 0.2, 0]}>
+              {point.year}
+            </Text>
+            <group position={[0, -0.32, 0]}>
+              <Text {...titleProps} position={[0, -diff / 2, 0]}>
+                {point.title}
+              </Text>
+              <Text
+                {...textProps}
+                fontSize={0.16}
+                maxWidth={2.4}
+                lineHeight={1}
+                position={[0, -0.86 - diff, 0]}>
+                {point.subtitle}
+              </Text>
+            </group>
+          </group>
+        )}
       </group>
     </group>
   );
