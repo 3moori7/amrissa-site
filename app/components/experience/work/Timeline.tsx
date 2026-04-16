@@ -12,6 +12,17 @@ import { useIsMobileViewport } from "@/app/hooks/useIsMobileViewport";
 const reusableLeft = new THREE.Vector3(-0.3, 0, -0.1);
 const reusableRight = new THREE.Vector3(0.3, 0, -0.1);
 
+/** Pull labels away from the right edge of the phone viewport in portal space. */
+const MOBILE_LABEL_OFFSET = new THREE.Vector3(-0.92, -0.04, 0.14);
+const MOBILE_BACKPLATE_W = 2.62;
+const MOBILE_BACKPLATE_H = 1.12;
+
+const mobileOutline = {
+  outlineWidth: '8%',
+  outlineColor: '#050505',
+  outlineOpacity: 1,
+} as const;
+
 const TimelinePoint = ({ point, diff, isMobile }: { point: WorkTimelinePoint, diff: number, isMobile: boolean }) => {
   const getPoint = useMemo(() => {
     switch (point.position) {
@@ -41,31 +52,68 @@ const TimelinePoint = ({ point, diff, isMobile }: { point: WorkTimelinePoint, di
     anchorX: (isMobile ? 'center' : textAlign) as TextProps['anchorX'],
   }), [textProps, isMobile, textAlign]);
 
-  const pointScale = isMobile ? 0.36 : 0.5;
+  const pointScale = isMobile ? 0.34 : 0.5;
 
   return (
     <group position={point.point} scale={pointScale}>
-      <Box args={[0.2, 0.2, 0.2]} position={[0, 0, -0.1]} scale={[1 - diff, 1 - diff, 1 - diff]}>
-        <meshBasicMaterial color="white" wireframe />
-        <Edges color="white" lineWidth={1.5} />
-      </Box>
+      {!isMobile && (
+        <Box args={[0.2, 0.2, 0.2]} position={[0, 0, -0.1]} scale={[1 - diff, 1 - diff, 1 - diff]}>
+          <meshBasicMaterial color="white" wireframe />
+          <Edges color="white" lineWidth={1.5} />
+        </Box>
+      )}
       <group>
         {isMobile ? (
-          <group position={[0, 0, 0]}>
-            <Text {...textProps} fontSize={0.17} position={[0, 0.42, 0]} anchorX="center" anchorY="middle">
+          <group position={MOBILE_LABEL_OFFSET}>
+            <mesh position={[0, 0, -0.035]} renderOrder={-1}>
+              <planeGeometry args={[MOBILE_BACKPLATE_W, MOBILE_BACKPLATE_H, 1]} />
+              <meshBasicMaterial
+                color="#050505"
+                transparent
+                opacity={0.78}
+                depthWrite={false}
+                toneMapped={false}
+              />
+            </mesh>
+            <Text
+              {...textProps}
+              {...mobileOutline}
+              color="#f6f6f6"
+              fontSize={0.16}
+              position={[0, 0.36, 0.02]}
+              anchorX="center"
+              anchorY="middle"
+              maxWidth={2.35}
+              overflowWrap="break-word"
+            >
               {point.year}
             </Text>
-            <Text {...titleProps} position={[0, 0.06, 0]} anchorX="center" anchorY="middle">
+            <Text
+              {...titleProps}
+              {...mobileOutline}
+              color="#ffffff"
+              fontSize={0.2}
+              position={[0, 0.04, 0.02]}
+              anchorX="center"
+              anchorY="middle"
+              maxWidth={2.35}
+              lineHeight={1.08}
+              overflowWrap="break-word"
+            >
               {point.title}
             </Text>
             <Text
               {...textProps}
-              fontSize={0.13}
-              maxWidth={2.75}
-              lineHeight={1.1}
-              position={[0, -0.52, 0]}
+              {...mobileOutline}
+              color="#e8e8e8"
+              fontSize={0.125}
+              maxWidth={2.35}
+              lineHeight={1.12}
+              position={[0, -0.42, 0.02]}
               anchorX="center"
-              anchorY="middle">
+              anchorY="middle"
+              overflowWrap="break-word"
+            >
               {point.subtitle}
             </Text>
           </group>
@@ -111,9 +159,21 @@ const Timeline = ({ progress }: { progress: number }) => {
   useFrame((_, delta) => {
     if (isActive) {
       const position = curve.getPoint(progress);
-      camera.position.x = THREE.MathUtils.damp(camera.position.x, (isMobile ? -1 : -2) + position.x, 4, delta);
+      const mobileCamBiasX = 0.42;
+      const mobileCamBiasZ = 0.35;
+      camera.position.x = THREE.MathUtils.damp(
+        camera.position.x,
+        (isMobile ? -0.85 : -2) + position.x + (isMobile ? mobileCamBiasX : 0),
+        4,
+        delta
+      );
       camera.position.y = THREE.MathUtils.damp(camera.position.y, -39 + position.z, 4, delta);
-      camera.position.z = THREE.MathUtils.damp(camera.position.z, 13 - position.y, 4, delta);
+      camera.position.z = THREE.MathUtils.damp(
+        camera.position.z,
+        13 - position.y + (isMobile ? mobileCamBiasZ : 0),
+        4,
+        delta
+      );
     }
   });
 
@@ -156,8 +216,8 @@ const Timeline = ({ progress }: { progress: number }) => {
 
   return (
     <group position={[0, -0.1, -0.1]}>
-      <Line points={visibleCurvePoints} color="white" lineWidth={3} />
-      {visibleDashedCurvePoints.length > 0 && (
+      <Line points={visibleCurvePoints} color={isMobile ? '#ffffff' : 'white'} lineWidth={isMobile ? 1.2 : 3} opacity={isMobile ? 0.35 : 1} transparent={isMobile} />
+      {visibleDashedCurvePoints.length > 0 && !isMobile && (
         <Line
           points={visibleDashedCurvePoints}
           color="white"
