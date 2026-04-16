@@ -7,8 +7,7 @@ import { useIsMobileViewport } from "@/app/hooks/useIsMobileViewport";
 import { FOOTER_LINKS } from "../../constants";
 import { FooterLink } from "../../types";
 
-const FooterLinkItem = ({ link }: { link: FooterLink }) => {
-  const isMobile = useIsMobileViewport();
+const FooterLinkItem = ({ link, isMobile }: { link: FooterLink, isMobile: boolean }) => {
   const textRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
   const onPointerOver = () => setHovered(true);
@@ -101,7 +100,7 @@ const Footer = () => {
     return FOOTER_LINKS.map((link, i) => {
       return (
         <group key={i} position={[i * (isMobile ? 1.1 : 2), 0, 0]}>
-          <FooterLinkItem link={link}/>
+          <FooterLinkItem link={link} isMobile={isMobile}/>
         </group>
       );
     });

@@ -1,11 +1,12 @@
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
-import { isMobile } from 'react-device-detect';
+import { useIsMobileViewport } from '@/app/hooks/useIsMobileViewport';
 
 /**
  * Partially AI Generated
  */
 const ProgressLoader = ({ progress }: { progress: number }) => {
+  const isMobile = useIsMobileViewport();
   const strokeWidth = 3;
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,

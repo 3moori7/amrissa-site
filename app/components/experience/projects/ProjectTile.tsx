@@ -154,7 +154,7 @@ const ProjectTile = ({ project, index, position, rotation, activeId, onClick }: 
         </Text>
         {project.image && (
           <group ref={imageRef} position={[1.04, -0.08, 0.12]} scale={[0, 0, 1]}>
-            <DreiImage url={project.image} scale={[1.82, 1.03, 1]} />
+            <DreiImage url={project.image} scale={[1.82, 1.03]} />
             <mesh position={[0, 0, 0.01]}>
               <planeGeometry args={[1.84, 1.05, 1]} />
               <meshBasicMaterial transparent opacity={0} />
