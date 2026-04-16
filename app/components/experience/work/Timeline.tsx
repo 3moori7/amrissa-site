@@ -12,18 +12,35 @@ import { useIsMobileViewport } from "@/app/hooks/useIsMobileViewport";
 const reusableLeft = new THREE.Vector3(-0.3, 0, -0.1);
 const reusableRight = new THREE.Vector3(0.3, 0, -0.1);
 
-/** Pull labels away from the right edge of the phone viewport in portal space. */
-const MOBILE_LABEL_OFFSET = new THREE.Vector3(-0.92, -0.04, 0.14);
-const MOBILE_BACKPLATE_W = 2.62;
-const MOBILE_BACKPLATE_H = 1.12;
+/** First role: centered card over dark foreground (reference layout). */
+const MOBILE_CENTER_OFFSET = new THREE.Vector3(0, -0.22, 0.14);
+/** Later roles: left stack like Research Lead / Software Solutions references. */
+const MOBILE_LEFT_OFFSET = new THREE.Vector3(-1.02, -0.16, 0.14);
 
-const mobileOutline = {
-  outlineWidth: '8%',
-  outlineColor: '#050505',
-  outlineOpacity: 1,
+const MOBILE_BACKPLATE_CENTER_W = 2.45;
+const MOBILE_BACKPLATE_CENTER_H = 1.18;
+const MOBILE_BACKPLATE_LEFT_W = 2.55;
+const MOBILE_BACKPLATE_LEFT_H = 1.22;
+
+const mobileOutlineSoft = {
+  outlineWidth: '5%',
+  outlineColor: '#0a0a0a',
+  outlineOpacity: 0.85,
 } as const;
 
-const TimelinePoint = ({ point, diff, isMobile }: { point: WorkTimelinePoint, diff: number, isMobile: boolean }) => {
+type MobileLayoutMode = 'center' | 'left';
+
+const TimelinePoint = ({
+  point,
+  diff,
+  isMobile,
+  mobileLayout,
+}: {
+  point: WorkTimelinePoint;
+  diff: number;
+  isMobile: boolean;
+  mobileLayout: MobileLayoutMode;
+}) => {
   const getPoint = useMemo(() => {
     switch (point.position) {
       case 'left': return reusableLeft;
@@ -39,20 +56,20 @@ const TimelinePoint = ({ point, diff, isMobile }: { point: WorkTimelinePoint, di
   const textProps: Partial<TextProps> = useMemo(() => ({
     font: "./Vercetti-Regular.woff",
     color: "white",
-    anchorX: isMobile ? 'center' : textAlign,
+    anchorX: isMobile ? (mobileLayout === 'center' ? 'center' : 'left') : textAlign,
     fillOpacity,
-  }), [textAlign, diff, isMobile]);
+  }), [textAlign, diff, isMobile, mobileLayout]);
 
   const titleProps = useMemo(() => ({
     ...textProps,
     font: "./soria-font.ttf",
-    fontSize: isMobile ? 0.22 : 0.42,
-    maxWidth: isMobile ? 2.75 : 2.4,
-    lineHeight: isMobile ? 1.05 : 1,
-    anchorX: (isMobile ? 'center' : textAlign) as TextProps['anchorX'],
-  }), [textProps, isMobile, textAlign]);
+    fontSize: isMobile ? (mobileLayout === 'center' ? 0.3 : 0.27) : 0.42,
+    maxWidth: isMobile ? (mobileLayout === 'center' ? 2.15 : 2.35) : 2.4,
+    lineHeight: isMobile ? (mobileLayout === 'center' ? 1 : 0.95) : 1,
+    anchorX: (isMobile ? (mobileLayout === 'center' ? 'center' : 'left') : textAlign) as TextProps['anchorX'],
+  }), [textProps, isMobile, textAlign, mobileLayout]);
 
-  const pointScale = isMobile ? 0.34 : 0.5;
+  const pointScale = isMobile ? 0.38 : 0.5;
 
   return (
     <group position={point.point} scale={pointScale}>
@@ -63,54 +80,117 @@ const TimelinePoint = ({ point, diff, isMobile }: { point: WorkTimelinePoint, di
         </Box>
       )}
       <group>
-        {isMobile ? (
-          <group position={MOBILE_LABEL_OFFSET}>
+        {isMobile && mobileLayout === 'center' ? (
+          <group position={MOBILE_CENTER_OFFSET}>
             <mesh position={[0, 0, -0.035]} renderOrder={-1}>
-              <planeGeometry args={[MOBILE_BACKPLATE_W, MOBILE_BACKPLATE_H, 1]} />
+              <planeGeometry args={[MOBILE_BACKPLATE_CENTER_W, MOBILE_BACKPLATE_CENTER_H, 1]} />
               <meshBasicMaterial
-                color="#050505"
+                color="#070504"
                 transparent
-                opacity={0.78}
+                opacity={0.58}
                 depthWrite={false}
                 toneMapped={false}
               />
             </mesh>
             <Text
               {...textProps}
-              {...mobileOutline}
-              color="#f6f6f6"
-              fontSize={0.16}
-              position={[0, 0.36, 0.02]}
+              {...mobileOutlineSoft}
+              color="#f4f4f4"
+              fontSize={0.15}
+              position={[0, 0.4, 0.02]}
               anchorX="center"
               anchorY="middle"
-              maxWidth={2.35}
+              maxWidth={2.1}
+              letterSpacing={0.02}
               overflowWrap="break-word"
             >
               {point.year}
             </Text>
             <Text
               {...titleProps}
-              {...mobileOutline}
+              {...mobileOutlineSoft}
               color="#ffffff"
-              fontSize={0.2}
-              position={[0, 0.04, 0.02]}
+              position={[0, 0.02, 0.02]}
               anchorX="center"
               anchorY="middle"
-              maxWidth={2.35}
-              lineHeight={1.08}
               overflowWrap="break-word"
             >
               {point.title}
             </Text>
             <Text
               {...textProps}
-              {...mobileOutline}
-              color="#e8e8e8"
-              fontSize={0.125}
-              maxWidth={2.35}
-              lineHeight={1.12}
-              position={[0, -0.42, 0.02]}
+              {...mobileOutlineSoft}
+              color="#ececec"
+              fontSize={0.128}
+              maxWidth={2.1}
+              lineHeight={1.1}
+              position={[0, -0.44, 0.02]}
               anchorX="center"
+              anchorY="middle"
+              overflowWrap="break-word"
+            >
+              {point.subtitle}
+            </Text>
+          </group>
+        ) : isMobile ? (
+          <group position={MOBILE_LEFT_OFFSET}>
+            <mesh position={[MOBILE_BACKPLATE_LEFT_W / 2 - 0.06, -0.02, -0.035]} renderOrder={-1}>
+              <planeGeometry args={[MOBILE_BACKPLATE_LEFT_W, MOBILE_BACKPLATE_LEFT_H, 1]} />
+              <meshBasicMaterial
+                color="#060403"
+                transparent
+                opacity={0.55}
+                depthWrite={false}
+                toneMapped={false}
+              />
+            </mesh>
+            <group position={[0.02, 0.34, 0.03]}>
+              <mesh position={[0, 0, 0]}>
+                <planeGeometry args={[0.11, 0.11, 1]} />
+                <meshBasicMaterial color="#ffffff" transparent opacity={0.95} depthWrite={false} />
+              </mesh>
+              <Line
+                points={[new THREE.Vector3(0, -0.06, 0.001), new THREE.Vector3(0, -0.38, 0.001)]}
+                color="#ffffff"
+                lineWidth={1}
+                opacity={0.55}
+                transparent
+              />
+            </group>
+            <Text
+              {...textProps}
+              {...mobileOutlineSoft}
+              color="#f2f2f2"
+              fontSize={0.142}
+              position={[0.22, 0.38, 0.02]}
+              anchorX="left"
+              anchorY="middle"
+              maxWidth={2.2}
+              letterSpacing={0.025}
+              overflowWrap="break-word"
+            >
+              {point.year}
+            </Text>
+            <Text
+              {...titleProps}
+              {...mobileOutlineSoft}
+              color="#ffffff"
+              position={[0.22, 0.05, 0.02]}
+              anchorX="left"
+              anchorY="middle"
+              overflowWrap="break-word"
+            >
+              {point.title}
+            </Text>
+            <Text
+              {...textProps}
+              {...mobileOutlineSoft}
+              color="#e6e6e6"
+              fontSize={0.124}
+              maxWidth={2.2}
+              lineHeight={1.12}
+              position={[0.22, -0.46, 0.02]}
+              anchorX="left"
               anchorY="middle"
               overflowWrap="break-word"
             >
@@ -159,11 +239,11 @@ const Timeline = ({ progress }: { progress: number }) => {
   useFrame((_, delta) => {
     if (isActive) {
       const position = curve.getPoint(progress);
-      const mobileCamBiasX = 0.42;
-      const mobileCamBiasZ = 0.35;
+      const mobileCamBiasX = progress < 0.12 ? 0.18 : 0.48;
+      const mobileCamBiasZ = progress < 0.12 ? 0.28 : 0.38;
       camera.position.x = THREE.MathUtils.damp(
         camera.position.x,
-        (isMobile ? -0.85 : -2) + position.x + (isMobile ? mobileCamBiasX : 0),
+        (isMobile ? -0.82 : -2) + position.x + (isMobile ? mobileCamBiasX : 0),
         4,
         delta
       );
@@ -230,7 +310,10 @@ const Timeline = ({ progress }: { progress: number }) => {
       <group ref={groupRef}>
         {visibleTimelinePoints.map((point, i) => {
           const diff = Math.min(2 * Math.max(i - (progress * (timeline.length - 1)), 0), 1);
-          return <TimelinePoint point={point} key={i} diff={diff} isMobile={isMobile} />;
+          const mobileLayout: MobileLayoutMode = i === 0 ? 'center' : 'left';
+          return (
+            <TimelinePoint point={point} key={i} diff={diff} isMobile={isMobile} mobileLayout={mobileLayout} />
+          );
         })}
       </group>
     </group>
