@@ -64,9 +64,9 @@ const Work = () => {
       <ScrollControls style={{ zIndex: -1}} pages={2} maxSpeed={0.4}>
         {USE_CAMPUS_BACKGROUND ? (
           <CampusDepthBackground
-            scale={new THREE.Vector3(5.6, 5.6, 5.6)}
-            position={new THREE.Vector3(0, -6, 0.75)}
-            rotation={new THREE.Euler(0, Math.PI, 0)}
+            scale={new THREE.Vector3(5.9, 5.9, 5.9)}
+            position={new THREE.Vector3(0, -6.05, 0.35)}
+            rotation={new THREE.Euler(0, 0, 0)}
           />
         ) : (
           <Memory scale={new THREE.Vector3(5, 5, 5)} position={new THREE.Vector3(0, -6, 1)} />
