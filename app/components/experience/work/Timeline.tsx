@@ -87,7 +87,7 @@ const TimelinePoint = ({
               <meshBasicMaterial
                 color="#070504"
                 transparent
-                opacity={0.58}
+                opacity={0.64}
                 depthWrite={false}
                 toneMapped={false}
               />
@@ -139,7 +139,7 @@ const TimelinePoint = ({
               <meshBasicMaterial
                 color="#060403"
                 transparent
-                opacity={0.55}
+                opacity={0.62}
                 depthWrite={false}
                 toneMapped={false}
               />
